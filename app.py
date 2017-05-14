@@ -14,36 +14,34 @@ auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
 to_phone_number = os.environ.get('TO_PHONE_NUMBER')
 from_phone_number = os.environ.get('FROM_PHONE_NUMBER')
 
+prompts = ['intro.mp3', 'q2.mp3', 'q3.mp3', 'outro.mp3']
+
 
 @app.route('/')
 def home():
     return 'Hello world'
 
-@app.route('/incoming-call')
-def incoming_call():
+@app.route('/call-collect', methods=['GET'])
+def call_collect():
     resp = VoiceResponse()
-    prompt_url = app_url(request) + url_for('static', filename='prompts/intro.mp3')
+    prompt = request.values.get('prompt')
+    previous_recording = request.values.get('RecordingUrl')
+    index = prompts.index(prompt)
+
+    if previous_recording:
+        client = Client(account_sid, auth_token)
+        client.messages.create(
+            to=to_phone_number,
+            from_=from_phone_number,
+            body='New reply to prompt %d: %s' % (index + 1, previous_recording))
+
+    prompt_url = app_url(request) + url_for('static', filename='prompts/' + prompt)
     resp.play(prompt_url)
 
-    resp.record(maxLength='30', action='/finish-recording', finishOnKey='1')
+    if index < len(prompts) - 1:
+        action = '/record-prompt?prompt=' + prompts[index + 1]
+        resp.record(maxLength='300', action=action, finishOnKey='1')
 
-    return str(resp)
-
-@app.route('/finish-recording', methods=['GET', 'POST'])
-def finish_recording():
-    recording_url = request.values.get('RecordingUrl', 'Nope!')
-    print recording_url
-
-    client = Client(account_sid, auth_token)
-    client.messages.create(
-    to=to_phone_number,
-    from_=from_phone_number,
-    body='Recording is here: ' + recording_url)
-
-
-    resp = VoiceResponse()
-    prompt_url = app_url(request) + url_for('static', filename='prompts/outro.mp3')
-    resp.play(prompt_url)
     return str(resp)
 
 def app_url(req):
