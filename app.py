@@ -2,8 +2,17 @@ import os
 
 from flask import Flask, request, redirect, url_for
 from twilio.twiml.voice_response import VoiceResponse
+from twilio.rest import Client
 
 app = Flask(__name__)
+
+# Twilio credentials
+account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
+auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
+
+# Phone number format: +15558675309
+to_phone_number = os.environ.get('TO_PHONE_NUMBER')
+from_phone_number = os.environ.get('FROM_PHONE_NUMBER')
 
 
 @app.route('/')
@@ -24,10 +33,18 @@ def incoming_call():
 
 @app.route('/finish-recording', methods=['GET', 'POST'])
 def finish_recording():
-    resp = VoiceResponse()
-    recording_url = request.values.get("RecordingUrl", None)
+    recording_url = request.values.get('RecordingUrl', 'Nope!')
     print recording_url
-    resp.say("Thanks! Goodbye.")
+
+    client = Client(account_sid, auth_token)
+    client.messages.create(
+    to=to_phone_number,
+    from_=from_phone_number,
+    body='Recording is here: ' + recording_url)
+
+
+    resp = VoiceResponse()
+    resp.say('Thanks! Goodbye.')
     return str(resp)
 
 if __name__ == '__main__':
