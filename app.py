@@ -28,6 +28,7 @@ def call_collect():
     previous_recording = request.values.get('RecordingUrl')
     index = prompts.index(prompt)
 
+    # Save recording from previous prompt
     if previous_recording:
         client = Client(account_sid, auth_token)
         client.messages.create(
@@ -35,11 +36,13 @@ def call_collect():
             from_=from_phone_number,
             body='New reply to prompt %d: %s' % (index + 1, previous_recording))
 
+    # Say the current prompt_url
     prompt_url = app_url(request) + url_for('static', filename='prompts/' + prompt)
     resp.play(prompt_url)
 
+    # Record and go to next prompt, if not the last prompt
     if index < len(prompts) - 1:
-        action = '/record-prompt?prompt=' + prompts[index + 1]
+        action = '/call-collect?prompt=' + prompts[index + 1]
         resp.record(maxLength='300', action=action, finishOnKey='1')
 
     return str(resp)
