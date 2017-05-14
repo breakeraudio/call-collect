@@ -21,7 +21,7 @@ prompts = ['intro.mp3', 'q2.mp3', 'q3.mp3', 'outro.mp3']
 def home():
     return 'Hello world'
 
-@app.route('/call-collect', methods=['GET'])
+@app.route('/call-collect', methods=['GET', 'POST'])
 def call_collect():
     resp = VoiceResponse()
     prompt = request.values.get('prompt')
