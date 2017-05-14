@@ -21,10 +21,8 @@ def home():
 
 @app.route('/incoming-call')
 def incoming_call():
-    app_url = request.base_url.rsplit('/', 1)[0]
-
     resp = VoiceResponse()
-    prompt_url = app_url + url_for('static', filename='prompts/sample.mp3')
+    prompt_url = app_url(request) + url_for('static', filename='prompts/intro.mp3')
     resp.play(prompt_url)
 
     resp.record(maxLength='30', action='/finish-recording', finishOnKey='1')
@@ -44,8 +42,12 @@ def finish_recording():
 
 
     resp = VoiceResponse()
-    resp.say('Thanks! Goodbye.')
+    prompt_url = app_url(request) + url_for('static', filename='prompts/outro.mp3')
+    resp.play(prompt_url)
     return str(resp)
+
+def app_url(req):
+    return req.base_url.rsplit('/', 1)[0]
 
 if __name__ == '__main__':
     app.run(use_reloader=True)
