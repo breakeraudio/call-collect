@@ -34,7 +34,7 @@ def call_collect():
         client.messages.create(
             to=to_phone_number,
             from_=from_phone_number,
-            body='New reply to prompt %d: %s' % (index + 1, previous_recording))
+            body='New reply to prompt %d: %s' % (index, previous_recording))
 
     # Say the current prompt_url
     prompt_url = app_url(request) + url_for('static', filename='prompts/' + prompt)
